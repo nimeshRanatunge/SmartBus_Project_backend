@@ -2,8 +2,8 @@
 require "DataBase.php";
 $db = new DataBase();
     if ($db->dbConnect()) {
-        if ($db->childReg("children", $_POST['fullname'], $_POST['username'], $_POST['gender'], $_POST['schoolcode'] ,$_POST['dob'], $_POST['doreg'])) {
+        if ($db->childReg($_POST['fullname'], $_POST['username'], $_POST['gender'], $_POST['schoolcode'] ,$_POST['dob'], $_POST['doreg'], $_POST['mypar'])) {
             echo "Registration Success";
-        } else echo "Sign up Failed";
+        } else echo "Registration Failed";
     } else echo "Error: Database connection";
 ?>

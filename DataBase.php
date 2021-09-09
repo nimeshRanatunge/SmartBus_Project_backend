@@ -6,6 +6,7 @@ class DataBase
     public $connect;
     public $data;
     private $sql;
+    private $sql2;
     protected $servername;
     protected $username;
     protected $password;
@@ -19,6 +20,7 @@ class DataBase
         $this->connect = null;
         $this->data = null;
         $this->sql = null;
+        $this->sql2 = null;
         $dbc = new DataBaseConfig();
         $this->servername = $dbc->servername;
         $this->username = $dbc->username;
@@ -39,7 +41,7 @@ class DataBase
 
     function logIn($table, $username, $password)
     {
-        $username = $this->prepareData($username);
+        $username = $this->prepareData(strtolower($username));
         $password = $this->prepareData($password);
         $this->sql = "select * from " . $table . " where username = '" . $username . "'";
         $result = mysqli_query($this->connect, $this->sql);
@@ -55,85 +57,140 @@ class DataBase
         return $login;
     }
 
-    function signUp($table, $fullname, $email, $username, $password, $address, $mobile)
+    function signUp($fullname, $email, $username, $password, $address, $mobile)
     {
-        $fullname = $this->prepareData($fullname);
-        $username = $this->prepareData($username);
+        $fullname = $this->prepareData(strtolower($fullname));
+        $username = $this->prepareData(strtolower($username));
         $password = $this->prepareData($password);
-        $email = $this->prepareData($email);
+        $email = $this->prepareData(strtolower($email));
         $address = $this->prepareData($address);
         $mobile = $this->prepareData($mobile);
         $password = password_hash($password, PASSWORD_DEFAULT);
         $this->sql =
-            "INSERT INTO " . $table . " (fullname, username, password, email, address, mobile) VALUES ('" . $fullname . "','" . $username . "','" . $password . "','" . $email . "','" . $address . "','" . $mobile . "')";
-        if (mysqli_query($this->connect, $this->sql)) {
-            return true;
+            "INSERT INTO users(fullname, username, password, email, address, mobile) VALUES ('$fullname','$username','$password','$email','$address','$mobile')";
+        if (strlen($mobile)==10 && strpos($email, "@")== true) {
+            if (mysqli_query($this->connect, $this->sql)) {
+                return true;
+            } else return false;
         } else return false;
     }
 
-    function UpdatingPare($table, $fullname, $username, $mobile, $email,$address)
+    function UpdatingPare($fullname, $username, $mobile, $email,$address)
     {
-        $fullname = $this->prepareData($fullname);
-        $username = $this->prepareData($username);
+        $fullname = $this->prepareData(strtolower($fullname));
+        $username = $this->prepareData(strtolower($username));
         $mobile = $this->prepareData($mobile);
-        $email = $this->prepareData($email);
+        $email = $this->prepareData(strtolower($email));
         $address = $this->prepareData($address);
         $this->sql =
-        "UPDATE ".$table." SET fullname='$fullname', mobile='$mobile', email='$email', address='$address' WHERE username='$username';";
+        "UPDATE users SET fullname='$fullname', mobile='$mobile', email='$email', address='$address' WHERE username='$username';";
             
-        if (mysqli_query($this->connect, $this->sql)) {
-            return true;
-        } else return false;
+
+        $this->sql2 = "SELECT mobile FROM users WHERE username='$username'";
+        $result = mysqli_query($this->connect, $this->sql2);
+        $row = mysqli_fetch_assoc($result);
+        if (mysqli_num_rows($result) != 0) {
+            if (strlen($mobile)==10 && strpos($email, "@")== true && mysqli_query($this->connect, $this->sql2)) {
+                if (mysqli_query($this->connect, $this->sql)) {
+                    return true;
+                } else return false;
+            } else return false;
+        }else return false;
+
+       
     }
    
-    function Updatingchild($table, $childid, $childname, $childgen, $sclcode,$childbd,$childregd)
+    function Updatingchild($childusername, $childname, $childgen, $sclcode,$childbd,$childregd)
     {
-        $childid = $this->prepareData($childid);
-        $childname = $this->prepareData($childname);
-        $childgen = $this->prepareData($childgen);
-        $sclcode = $this->prepareData($sclcode);
+        $childusername = $this->prepareData(strtolower($childusername));
+        $childname = $this->prepareData(strtolower($childname));
+        $childgen = $this->prepareData(strtoupper($childgen));
+        $sclcode = $this->prepareData(strtoupper($sclcode));
         $childbd = $this->prepareData($childbd);
         $childregd = $this->prepareData($childregd);
         $this->sql =
-        "UPDATE ".$table." SET fullname='$childname', gender='$childgen', sclCode='$sclcode', dob='$childbd', doreg='$childregd' WHERE id='$childid';";
-            
-        if (mysqli_query($this->connect, $this->sql)) {
-            return true;
-        } else return false;
+        "UPDATE children SET fullname='$childname', gender='$childgen', sclCode='$sclcode', dob='$childbd', doreg='$childregd' WHERE username='$childusername';";
+
+        $this->sql2 = "SELECT gender FROM children WHERE username='$childusername'";
+        $result = mysqli_query($this->connect, $this->sql2);
+        $row = mysqli_fetch_assoc($result);
+        if (mysqli_num_rows($result) != 0) {
+            if (mysqli_query($this->connect, $this->sql2) && ($childgen == "M" || $childgen == "F")) {
+                if (mysqli_query($this->connect, $this->sql)) {
+                    return true;
+                } else return false;
+            } else return false;
+        }else return false;
     }
    
 
-    function Deletingchild($table, $childUN)
+    function Deletingchild($childUN)
     {
-        $childUN = $this->prepareData($childUN);
+        $childUN = $this->prepareData(strtolower($childUN));
         $this->sql =
-        "DELETE FROM ".$table." WHERE username='$childUN';";
+        "DELETE FROM children WHERE username='$childUN';";
             
-        if (mysqli_query($this->connect, $this->sql)) {
-            return true;
-        } else return false;
+        $this->sql2 = "SELECT fullname FROM children WHERE username='$childUN'";
+        $result = mysqli_query($this->connect, $this->sql2);
+        $row = mysqli_fetch_assoc($result);
+        if (mysqli_num_rows($result) != 0) {
+            if (mysqli_query($this->connect, $this->sql2)) {
+                if (mysqli_query($this->connect, $this->sql)) {
+                    return true;
+                } else return false;
+            } else return false;
+        }else return false;
     }
 
 
-
-    function childReg($table, $fullname, $username, $gender, $schoolcode, $dob, $doreg)
+    function childReg($fullname, $username, $gender, $schoolcode, $dob, $doreg, $mypar)
     {
-        $fullname = $this->prepareData($fullname);
-        $username = $this->prepareData($username);
-        $gender = $this->prepareData($gender);
-        $schoolcode = $this->prepareData($schoolcode);
+        $fullname = $this->prepareData(strtolower($fullname));
+        $mypar = $this->prepareData(strtolower($mypar));
+        $username = $this->prepareData(strtolower($username));
+        $gender = $this->prepareData(strtoupper($gender));
+        $schoolcode = $this->prepareData(strtoupper($schoolcode));
         $dob = $this->prepareData($dob);
         $doreg = $this->prepareData($doreg);
         $this->sql =
-            "INSERT INTO " . $table . " (fullname, username, gender, sclCode, dob, doreg) VALUES ('" . $fullname . "','" . $username . "','" . $gender . "','" . $schoolcode . "','" . $dob . "','" . $doreg . "')";
-        if (mysqli_query($this->connect, $this->sql)) {
-            return true;
-        } else return false;
+            "INSERT INTO children(fullname, username, gender, sclCode, dob, doreg,myparentUsername) VALUES ('$fullname','$username','$gender','$schoolcode','$dob','$doreg','$mypar')";
+            $this->sql2 = "SELECT fullname FROM users WHERE username='$mypar'";
+            $result = mysqli_query($this->connect, $this->sql2);
+            $row = mysqli_fetch_assoc($result);
+            if (mysqli_num_rows($result) != 0) {
+                if (mysqli_query($this->connect, $this->sql2)) {
+                    if (mysqli_query($this->connect, $this->sql)) {
+                        return true;
+                    } else return false;
+                } else return false;
+            }else return false;
     }
+
+
+
+    function testing($parentUN)
+    {
+        $childUN = $this->prepareData(strtolower($parentUN));
+        $this->sql =
+        "INSERT INTO test(col2) SELECT fullname FROM children WHERE myparentUsername='$parentUN'";
+            
+        $this->sql2 = "SELECT fullname FROM users WHERE username='$parentUN'";
+        $result = mysqli_query($this->connect, $this->sql2);
+        $row = mysqli_fetch_assoc($result);
+        if (mysqli_num_rows($result) != 0) {
+            if (mysqli_query($this->connect, $this->sql2)) {
+                if (mysqli_query($this->connect, $this->sql)) {
+                    return true;
+                } else return false;
+            } else return false;
+        }else return false;
+    }
+
 
     
     
 }
+
 
 ?>
 
