@@ -57,7 +57,7 @@ class DataBase
         return $login;
     }
 
-    function signUp($fullname, $email, $username, $password, $address, $mobile)
+    function signUp($fullname, $email, $username, $password, $address, $mobile, $gender)
     {
         $fullname = $this->prepareData(strtolower($fullname));
         $username = $this->prepareData(strtolower($username));
@@ -65,9 +65,10 @@ class DataBase
         $email = $this->prepareData(strtolower($email));
         $address = $this->prepareData($address);
         $mobile = $this->prepareData($mobile);
+        $gender = $this->prepareData(strtoupper($gender));
         $password = password_hash($password, PASSWORD_DEFAULT);
         $this->sql =
-            "INSERT INTO users(fullname, username, password, email, address, mobile) VALUES ('$fullname','$username','$password','$email','$address','$mobile')";
+            "INSERT INTO users(fullname, username, password, email, address, mobile, gender) VALUES ('$fullname','$username','$password','$email','$address','$mobile', '$gender')";
         if (strlen($mobile)==10 && strpos($email, "@")== true) {
             if (mysqli_query($this->connect, $this->sql)) {
                 return true;
@@ -154,7 +155,7 @@ class DataBase
         $doreg = $this->prepareData($doreg);
         $this->sql =
             "INSERT INTO children(fullname, username, gender, sclCode, dob, doreg,myparentUsername) VALUES ('$fullname','$username','$gender','$schoolcode','$dob','$doreg','$mypar')";
-            $this->sql2 = "SELECT fullname FROM users WHERE username='$mypar'";
+            $this->sql2 = "SELECT gender FROM users WHERE username='$mypar'";
             $result = mysqli_query($this->connect, $this->sql2);
             $row = mysqli_fetch_assoc($result);
             if (mysqli_num_rows($result) != 0) {
